@@ -17,6 +17,7 @@ class Variable:
     def backward(self):
         if self.grad == None:
             self.grad = np.ones_like(self.data)
+            print(id(self.grad))
 
         funcs = [self.creator]
 
@@ -28,7 +29,10 @@ class Variable:
                 gxs = gxs,
 
             for x, gx in zip(f.inputs, gxs):
-                x.grad = gx
+                if x.grad == None:
+                    x.grad = gx
+                else:
+                    x.grad = x.grad + gx
                 
                 if x.creator is not None:
                     funcs.append(x.creator)
@@ -128,7 +132,6 @@ z = add(square(x), square(y))
 z.backward()
 
 print(x.grad, y.grad, z.data)
-
 
 
 # unittest.main()
