@@ -31,6 +31,7 @@ class Variable:
         self.grad = None
         self.creator = None
         self.generation = 0
+        self.name = None
 
     def set_creator(self, func):
         self.creator = func
