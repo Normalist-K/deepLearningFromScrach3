@@ -74,7 +74,7 @@ class Variable:
                 for y in f.outputs:
                     y().grad = None # y is weakref 
 
-    def clearGrad(self):
+    def cleargrad(self):
         self.grad = None
 
     def __len__(self):
