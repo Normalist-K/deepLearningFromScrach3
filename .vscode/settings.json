@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/youngin/anaconda3/envs/py-env/bin/python"
+    "python.pythonPath": "/home/opticho/anaconda3/bin/python",
+    "files.autoSave": "afterDelay",
+    "python.languageServer": "Microsoft"
 }
