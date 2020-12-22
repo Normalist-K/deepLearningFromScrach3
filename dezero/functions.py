@@ -1,5 +1,6 @@
 import numpy as np
 from dezero.core import Function, as_variable
+from dezero import utils
 
 
 class Sin(Function):
@@ -57,3 +58,32 @@ def reshape(x, shape):
     if x.shape == shape:
         return as_variable(x)
     return Reshape(shape)(x)
+
+class Transpose(Function):
+    def forward(self, x):
+        return np.transpose(x)
+    
+    def backward(self, gy):
+        return transpose(gy)
+    
+def transpose(x):
+    return Transpose()(x)
+    
+    
+class Sum(Function):
+    def __init__(self, axis, keepdims):
+        self.axis = axis
+        self.keepdims = keepdims
+    
+    def forward(self, x):
+        self.x_shape = x.shape
+        y = x.sum(axis=self.axis, keepdims=self.keepdims)
+        return y
+
+    def backward(self, gy):
+        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims)
+        gx = broadcast_to(gy, self.x_shape)
+        return gx
+    
+def sum(x, axis=None, keepdims=None):
+    return Sum(axis, keepdims)(x)
