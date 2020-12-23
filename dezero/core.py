@@ -24,7 +24,7 @@ def no_grad():
 class Variable:
     __array_priority__ = 200
     
-    def __init__(self, data):
+    def __init__(self, data, name=None):
         if data is not None:
             if not isinstance(data, np.ndarray):
                 raise TypeError(f'{type(data)}은(는) 지원하지 않습니다.')
@@ -33,7 +33,7 @@ class Variable:
         self.grad = None
         self.creator = None
         self.generation = 0
-        self.name = None
+        self.name = name
 
     def set_creator(self, func):
         self.creator = func
@@ -95,9 +95,9 @@ class Variable:
 
     def __repr__(self):
         if self.data is None:
-            return 'Variable(None)'
+            return 'variable(None)'
         p = str(self.data).replace('\n', '\n' + ' ' * 9)
-        return f'Variable({p})'
+        return f'variable({p})'
     
     @property
     def T(self):
@@ -126,6 +126,9 @@ def as_variable(obj):
 
 def as_array(x):
     return np.array(x) if np.isscalar(x) else x
+
+class Parameter(Variable):
+    pass
     
 class Function:
     def __call__(self, *inputs):

@@ -65,6 +65,7 @@ def plot_dot_graph(output, verbose=True, to_file='graph.png'):
     # call dot command
     extension = os.path.splitext(to_file)[1][1:] # 확장자(png, pdf 등)
     cmd = f'dot {graph_path} -T {extension} -o {to_file}'
+    # print(cmd)
     subprocess.run(cmd, shell=True)
 
     # Return the image as a Jupyter Image object, to be displayed in-line.
