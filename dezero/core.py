@@ -5,6 +5,12 @@ import numpy as np
 
 import dezero
 
+try:
+    import cupy
+    array_types = (np.ndarray, cupy.ndarray)
+except ImportError:
+    array_types = (np.ndarray)
+
 
 class Config:
     enable_backprop = True
@@ -26,7 +32,7 @@ class Variable:
     
     def __init__(self, data, name=None):
         if data is not None:
-            if not isinstance(data, np.ndarray):
+            if not isinstance(data, array_types):
                 raise TypeError(f'{type(data)}은(는) 지원하지 않습니다.')
                 
         self.data = data
@@ -40,8 +46,9 @@ class Variable:
         self.generation = func.generation + 1
 
     def backward(self, retain_grad=False, create_graph=False):
-        if self.grad == None:
-            self.grad = Variable(np.ones_like(self.data))
+        if self.grad is None:
+            xp = dezero.cuda.get_array_module(self.data)
+            self.grad = Variable(xp.ones_like(self.data))
 
         funcs = []
         seen_set = set()
@@ -75,6 +82,14 @@ class Variable:
             if not retain_grad:
                 for y in f.outputs:
                     y().grad = None # y is weakref 
+
+    def to_cpu(self):
+        if self.data is not None:
+            self.data = dezero.cuda.as_numpy(self.data)
+            
+    def to_gpu(self):
+        if self.data is not None:
+            self.data = dezero.cuda.as_cupy(self.data)
 
     def cleargrad(self):
         self.grad = None
@@ -124,8 +139,10 @@ def as_variable(obj):
         return obj
     return Variable(obj)
 
-def as_array(x):
-    return np.array(x) if np.isscalar(x) else x
+def as_array(x, array_module=np):
+    if np.isscalar(x):
+        return array_module.array(x)
+    return x
 
 class Parameter(Variable):
     pass
@@ -167,7 +184,7 @@ class Add(Function):
         return gx0, gx1
 
 def add(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Add()(x0, x1)
 
 class Mul(Function):
@@ -185,7 +202,7 @@ class Mul(Function):
         return gx0, gx1
 
 def mul(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Mul()(x0, x1)
 
 class Neg(Function):
@@ -213,11 +230,11 @@ class Sub(Function):
         return gx0, gx1
     
 def sub(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Sub()(x0, x1)
 
 def rsub(x1, x0):
-    x0 = as_array(x0)
+    x0 = as_array(x0, dezero.cuda.get_array_module(x0.data))
     return Sub()(x0, x1)
 
 class Div(Function):
@@ -235,11 +252,11 @@ class Div(Function):
         return gx0, gx1
     
 def div(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Div()(x0, x1)
 
 def rdiv(x1, x0):
-    x0 = as_array(x0)
+    x0 = as_array(x0, dezero.cuda.get_array_module(x0.data))
     return Div()(x0, x1)
 
 class Pow(Function):
