@@ -284,7 +284,7 @@ class GetItemGrad(Function):
         self.in_shape = in_shape
         
     def forward(self, gy):
-        xp = cuda.get_array_module(x)
+        xp = cuda.get_array_module(gy)
         gx = xp.zeros(self.in_shape)
         xp.add.at(gx, self.slices, gy)
         return gx
